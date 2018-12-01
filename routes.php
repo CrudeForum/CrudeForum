@@ -21,14 +21,18 @@ use \CrudeForum\CrudeForum\Iterator\Filtered;
 use \CrudeForum\CrudeForum\Iterator\Map;
 
 $router->addRoute(
-    'GET', '/post/{postID:\d+}', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/post/{postID:\d+}',
+    function ($vars, $forum) use ($configs) {
         $lock = $forum->getLock();
         $postID = $vars['postID'];
 
         $forum->log("read?" . $postID);
         $post = $forum->readPost($postID);
         $lock->unlock();
-        if ($post === null) die('post not found');
+        if ($post === null) {
+            die('post not found');
+        }
 
         echo $forum->template->render(
             'post.twig',
@@ -54,7 +58,9 @@ $router->addRoute(
 );
 
 $router->addRoute(
-    'GET', '/post/{postID:\d+}/prev', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/post/{postID:\d+}/prev',
+    function ($vars, $forum) use ($configs) {
         $lock = $forum->getLock();
         $postID = $vars['postID'];
         try {
@@ -62,7 +68,8 @@ $router->addRoute(
             $lock->unlock();
             header('Refresh: 0; URL=' . $forum->linkTo('post', $prev->id));
             echo $forum->template->render(
-                'base.twig', ['configs' => $configs]
+                'base.twig',
+                ['configs' => $configs]
             );
         } catch (Exception $e) {
             $lock->unlock();
@@ -72,7 +79,9 @@ $router->addRoute(
 );
 
 $router->addRoute(
-    'GET', '/post/{postID:\d+}/next', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/post/{postID:\d+}/next',
+    function ($vars, $forum) use ($configs) {
         $lock = $forum->getLock();
         $postID = $vars['postID'];
         try {
@@ -80,7 +89,8 @@ $router->addRoute(
             $lock->unlock();
             header('Refresh: 0; URL=' . $forum->linkTo('post', $next->id));
             echo $forum->template->render(
-                'base.twig', ['configs' => $configs]
+                'base.twig',
+                ['configs' => $configs]
             );
         } catch (Exception $e) {
             $lock->unlock();
@@ -90,7 +100,9 @@ $router->addRoute(
 );
 
 $router->addRoute(
-    'GET', '/post/{postID:\d+}/back', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/post/{postID:\d+}/back',
+    function ($vars, $forum) use ($configs) {
         $lock = $forum->getLock();
         $postID = $vars['postID'];
         try {
@@ -104,7 +116,8 @@ $router->addRoute(
                 )
             );
             echo $forum->template->render(
-                'base.twig', ['configs' => $configs]
+                'base.twig',
+                ['configs' => $configs]
             );
         } catch (Exception $e) {
             $lock->unlock();
@@ -131,7 +144,9 @@ $showForm = function ($vars, $forum) use ($configs) {
         $parent = $forum->readPost($postID);
         $post = Post::replyFor($parent);
         $post->author = $_COOKIE['forumName'] ?? '';
-        if ($parent == null) die('post not found');
+        if ($parent == null) {
+            die('post not found');
+        }
     } else if ($action == 'add' && empty($postID)) {
         $post = new Post();
         $post->author = $_COOKIE['forumName'] ?? '';
@@ -172,10 +187,18 @@ $savePost = function ($vars, $forum) use ($configs) {
 
     // validate the form
     $errors = array();
-    if (strlen($author) > 8) $errors[$configs['formPostAuthor']][] = 'Name too long';
-    if ($author == '') $errors[$configs['formPostAuthor']][] = 'Please enter your name';
-    if ($title == '') $errors[$configs['formPostTitle']][] ='Please enter a subject';
-    if ($body == '') $errors[$configs['formPostBody']][] ='Please enter post content';
+    if (strlen($author) > 8) {
+        $errors[$configs['formPostAuthor']][] = 'Name too long';
+    }
+    if ($author == '') {
+        $errors[$configs['formPostAuthor']][] = 'Please enter your name';
+    }
+    if ($title == '') {
+        $errors[$configs['formPostTitle']][] = 'Please enter a subject';
+    }
+    if ($body == '') {
+        $errors[$configs['formPostBody']][] = 'Please enter post content';
+    }
 
     // display error message with the originally filled form
     if (!empty($errors)) {
@@ -203,89 +226,96 @@ $savePost = function ($vars, $forum) use ($configs) {
     $lock = $forum->getLock();
 
     switch ($action) {
-    case 'add':
-        $nextID = $forum->getCount() + 1;
-        $post = new Post(
-            $title,
-            $body,
-            ['author' => $author, 'time' => $currentTime]
-        );
-        $forum->writePost($nextID, $post);
-        $forum->appendIndex(
-            new PostSummary(
-                $nextID,
-                0,
+        case 'add':
+            $nextID = $forum->getCount() + 1;
+            $post = new Post(
                 $title,
-                $author,
-                $currentTime
-            ), null
-        );
-        $forum->incCount();
-        $lock->unlock();
-        header('Refresh: 0; URL=' . $forum->linkTo('forum'));
-        echo $forum->template->render(
-            'base.twig', ['configs' => $configs]
-        );
-        break;
-    case 'reply':
-        $parentID = $postID;
-        $nextID = $forum->getCount() + 1;
-        $post = new Post(
-            $title,
-            $body,
-            ['author' => $author, 'time' => $currentTime]
-        );
-        $forum->writePost($nextID, $post);
-        $forum->appendIndex(
-            new PostSummary(
-                $nextID,
-                0,
+                $body,
+                ['author' => $author, 'time' => $currentTime]
+            );
+            $forum->writePost($nextID, $post);
+            $forum->appendIndex(
+                new PostSummary(
+                    $nextID,
+                    0,
+                    $title,
+                    $author,
+                    $currentTime
+                ),
+                null
+            );
+            $forum->incCount();
+            $lock->unlock();
+            header('Refresh: 0; URL=' . $forum->linkTo('forum'));
+            echo $forum->template->render(
+                'base.twig',
+                ['configs' => $configs]
+            );
+            break;
+        case 'reply':
+            $parentID = $postID;
+            $nextID = $forum->getCount() + 1;
+            $post = new Post(
                 $title,
-                $author,
-                $currentTime
-            ), $parentID
-        );
-        $forum->incCount();
-        $lock->unlock();
-        header('Refresh: 0; URL=' . $forum->linkTo('post', $parentID, 'back'));
-        echo $forum->template->render(
-            'base.twig', ['configs' => $configs]
-        );
-        break;
-    case 'edit':
-        $existingPost = $forum->readPost($postID);
-        // check if the editor is the original author
-        if (!$forum->isAdmin($author) && ($existingPost->header['author'] !== $author)) {
-            throw new Exception('you are not the original author of this post.');
-        }
+                $body,
+                ['author' => $author, 'time' => $currentTime]
+            );
+            $forum->writePost($nextID, $post);
+            $forum->appendIndex(
+                new PostSummary(
+                    $nextID,
+                    0,
+                    $title,
+                    $author,
+                    $currentTime
+                ),
+                $parentID
+            );
+            $forum->incCount();
+            $lock->unlock();
+            header('Refresh: 0; URL=' . $forum->linkTo('post', $parentID, 'back'));
+            echo $forum->template->render(
+                'base.twig',
+                ['configs' => $configs]
+            );
+            break;
+        case 'edit':
+            $existingPost = $forum->readPost($postID);
+            // check if the editor is the original author
+            if (!$forum->isAdmin($author) && ($existingPost->header['author'] !== $author)) {
+                throw new Exception('you are not the original author of this post.');
+            }
 
-        // inherit header by default
-        $header = $existingPost->header;
-        if ($forum->isAdmin($author)) {
-            // admin can override user name
-            $header['author'] = $author;
-        }
+            // inherit header by default
+            $header = $existingPost->header;
+            if ($forum->isAdmin($author)) {
+                // admin can override user name
+                $header['author'] = $author;
+            }
 
-        // generate new post
-        $post = new Post(
-            $title,
-            $body,
-            $header
-        );
-        $forum->writePost($postID, $post);
-        $lock->unlock();
-        header('Refresh: 0; URL=' . $forum->linkTo('post', $postID));
-        echo $forum->template->render(
-            'base.twig', ['configs' => $configs]
-        );
-        break;
+            // generate new post
+            $post = new Post(
+                $title,
+                $body,
+                $header
+            );
+            $forum->writePost($postID, $post);
+            $lock->unlock();
+            header('Refresh: 0; URL=' . $forum->linkTo('post', $postID));
+            echo $forum->template->render(
+                'base.twig',
+                ['configs' => $configs]
+            );
+            break;
     }
 };
 $router->addRoute('POST', '/post/{postID:\d+}/{action:edit|reply}', $savePost);
 $router->addRoute('POST', '/post/{action:add}', $savePost);
 
 $router->addRoute(
-    'GET', '/forum[/[{page:\d+}]]', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/forum[/[{page:\d+}]]',
+    function ($vars, $forum) use ($configs) {
 
         $page = $vars['page'] ?? 0;
         $forum->log("forum?" . $page);
@@ -320,7 +350,9 @@ $router->addRoute(
 );
 
 $router->addRoute(
-    'GET', '/user/{username}[/[{page:\d+}]]', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/user/{username}[/[{page:\d+}]]',
+    function ($vars, $forum) use ($configs) {
         $page = $vars['page'] ?? 0;
         $forum->log("forum?" . $page);
 
@@ -372,7 +404,9 @@ $router->addRoute(
 
 
 $router->addRoute(
-    'GET', '/rss', function ($vars, $forum) use ($configs) {
+    'GET',
+    '/rss',
+    function ($vars, $forum) use ($configs) {
         $mode = $_GET['mode'] ?? 'post';
 
         // read post summaries as reference to the mode
@@ -383,70 +417,69 @@ $router->addRoute(
         $rssPosts = [];
 
         switch ($mode) {
-        case 'thread':
-        case 'threads':
-            $postSummaries = Utils::chainWrappers(
-                new Filtered(
-                    function ($postSummary) {
-                        return ($postSummary->level == 0);
-                    }
-                ),
-                new Paged(0, $configs['rssPostLimit'])
-            )->wrap($forum->getIndex());
+            case 'thread':
+            case 'threads':
+                $postSummaries = Utils::chainWrappers(
+                    new Filtered(
+                        function ($postSummary) {
+                            return ($postSummary->level == 0);
+                        }
+                    ),
+                    new Paged(0, $configs['rssPostLimit'])
+                )->wrap($forum->getIndex());
 
-            // read post index and post contents
-            foreach ($postSummaries as $postSummary) {
-                $postSummary->post = $forum->readPost($postSummary->id);
-                $postSummary->rssBody = $forum->template->render(
-                    'rssPostBody.twig',
-                    [
-                        'configs' => $configs,
-                        'sitePath' => 'http://localhost:8080',
-                        'postSummary' => $postSummary,
-                        'post' => $postSummary->post,
-                        't' => [
-                            'author' => '作者',
-                            'time' => '時間',
-                            'reply' => '回覆',
-                            'forumIndex' => '回論壇',
-                        ],
-                    ]
-                );
-                $rssPosts[] = $postSummary;
-            }
-            break;
-        case 'post':
-            $posts = Utils::chainWrappers(
-                //new Paged(0, $configs['rssPostLimit'])
-                new Paged(0, $configs['rssPostLimit'])
-            )->wrap($forum->getPosts());
+                // read post index and post contents
+                foreach ($postSummaries as $postSummary) {
+                    $postSummary->post = $forum->readPost($postSummary->id);
+                    $postSummary->rssBody = $forum->template->render(
+                        'rssPostBody.twig',
+                        [
+                            'configs' => $configs,
+                            'sitePath' => 'http://localhost:8080',
+                            'postSummary' => $postSummary,
+                            'post' => $postSummary->post,
+                            't' => [
+                                'author' => '作者',
+                                'time' => '時間',
+                                'reply' => '回覆',
+                                'forumIndex' => '回論壇',
+                            ],
+                        ]
+                    );
+                    $rssPosts[] = $postSummary;
+                }
+                break;
+            case 'post':
+                $posts = Utils::chainWrappers(
+                    new Paged(0, $configs['rssPostLimit'])
+                )->wrap($forum->getPosts());
 
-            // parse post as postSummary and generate rssPosts
-            foreach ($posts as $post) {
-                $postSummary = PostSummary::fromPost($post);
-                $postSummary->post = $post;
-                $postSummary->rssBody = $forum->template->render(
-                    'rssPostBody.twig',
-                    [
-                        'configs' => $configs,
-                        'sitePath' => 'http://localhost:8080',
-                        'postSummary' => $postSummary,
-                        'post' => $postSummary->post,
-                        't' => [
-                            'author' => '作者',
-                            'time' => '時間',
-                            'reply' => '回覆',
-                            'forumIndex' => '回論壇',
-                        ],
-                    ]
+                // parse post as postSummary and generate rssPosts
+                foreach ($posts as $post) {
+                    $postSummary = PostSummary::fromPost($post);
+                    $postSummary->post = $post;
+                    $postSummary->rssBody = $forum->template->render(
+                        'rssPostBody.twig',
+                        [
+                            'configs' => $configs,
+                            'sitePath' => 'http://localhost:8080',
+                            'postSummary' => $postSummary,
+                            'post' => $postSummary->post,
+                            't' => [
+                                'author' => '作者',
+                                'time' => '時間',
+                                'reply' => '回覆',
+                                'forumIndex' => '回論壇',
+                            ],
+                        ]
+                    );
+                    $rssPosts[] = $postSummary;
+                }
+                break;
+            default:
+                throw new Exception(
+                    sprintf('mode "%s" is not supported', htmlspecialchars($mode))
                 );
-                $rssPosts[] = $postSummary;
-            }
-            break;
-        default:
-            throw new Exception(
-                sprintf('mode "%s" is not supported', htmlspecialchars($mode))
-            );
         }
         unset($postSummaries);
         $lock->unlock();
