@@ -254,6 +254,24 @@ ul.messages-error {
             }
         }
     }
+    .field-post-type select {
+        display: block;
+        background-image: none;
+        background-color: transparent;
+        border: 1px solid #455354;
+        color: inherit;
+        -webkit-appearance: none;
+        -moz-appearance:    none;
+        appearance:         none;
+        width: 100%;
+        option {
+            display: block;
+            box-sizing: border-box;
+            padding: 0.4em 1em;
+            font-size: 1.5em;
+            height: 2.5em;
+        }
+    }
 }
 
 table {

@@ -36,6 +36,21 @@
             {% if not post.author is empty and not post.title is empty and post.body is empty %}autofocus{% endif %}
         >{{ post.safeBody() | raw }}</textarea>
     </div>
+    <div class="field-wrapper field-post-type">
+        <select
+            id="post-type"
+            name="post_type"
+        >
+            <option
+                value="text"
+                {% if post.header.post_type is empty or post.header.post_type == 'text' %}selected{% endif %}
+            >Text</option>
+            <option
+                value="markdown"
+                {% if post.header.post_type == 'markdown' %}selected{% endif %}
+            >Markdown</option>
+        </select>
+    </div>
     <div class="actions">
         <button type="submit">發出</button>
     </div>

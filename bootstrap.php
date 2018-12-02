@@ -65,7 +65,7 @@ if (!empty(Core::env('CRUDE_DIR_CACHE'))) {
 }
 
 // define body-to-html filter
-$bodyToHTML = new \Twig\TwigFilter('bodyToHTML', function ($string) use ($cache) {
+$bodyToHTML = new \Twig\TwigFilter('bodyToHTML', function ($string, $type = 'text') use ($cache) {
     $filter = StreamFilter::pipeString(
         [\CrudeForum\CrudeForum\StreamFilter::class, 'quoteToBlockquote'],
         [\CrudeForum\CrudeForum\StreamFilter::class, 'reduceFlashEmbed'],
