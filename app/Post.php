@@ -13,6 +13,7 @@
  * Source Code
  */
 namespace CrudeForum\CrudeForum;
+
 use \Exception;
 use \InvalidArgumentException;
 use \CrudeForum\CrudeForum\Exception\PostInvalid;
@@ -52,7 +53,7 @@ class Post
      * @param array   $header   Meta information of the post.
      * @param boolean $noAutoBr Should the post be processed with auto br on browser.
      */
-    public function __construct(string $title='', string $body='', array $header=[], bool $noAutoBr=false)
+    public function __construct(string $title = '', string $body = '', array $header = [], bool $noAutoBr = false)
     {
         $this->title = (string) $title;
         $this->body = (string) $body;
@@ -93,7 +94,9 @@ class Post
      */
     public static function fromText(string $text): ?Post
     {
-        if (empty($text)) throw new InvalidArgumentException('expected non-empty string as parameter');
+        if (empty($text)) {
+            throw new InvalidArgumentException('expected non-empty string as parameter');
+        }
         $lines = explode("\n", str_replace("\r\n", "\n", $text), 3);
         $size = sizeof($lines);
         if ($size === 1) {
@@ -122,7 +125,9 @@ class Post
                 return null;
             }
         }
-        if ($lineNum < 0) throw new PostInvalid('the post body has no header');
+        if ($lineNum < 0) {
+            throw new PostInvalid('the post body has no header');
+        }
 
         $body = implode("\n", array_splice($bodyLines, $lineNum + 1));
         return new Post($title, $body, $header);
@@ -138,8 +143,12 @@ class Post
      */
     public static function replyFor(?Post $parent): Post
     {
-        if ($parent === null) return new Post();
-        if (empty($parent->title) && empty($parent->body)) return new Post();
+        if ($parent === null) {
+            return new Post();
+        }
+        if (empty($parent->title) && empty($parent->body)) {
+            return new Post();
+        }
 
         // generate reply post
         $title = (strpos($parent->title, 'Re: ') === 0) ?
